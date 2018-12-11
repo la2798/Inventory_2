@@ -1,6 +1,5 @@
 package com.example.android.inventoryapp;
 
-import android.content.ClipData;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -23,7 +22,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.android.inventoryapp.Data.ItemsContract;
@@ -47,16 +45,19 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         }
     };
     private Uri mCurrentBookUri;
+    private boolean saveSuccess = true;
+    private int quantity = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
-
+        orderButton = findViewById(R.id.order_button);
         Intent intent = getIntent();
         mCurrentBookUri = intent.getData();
 
         if (mCurrentBookUri == null) {
+            orderButton.setEnabled(false);
             setTitle(getString(R.string.addbook));
             invalidateOptionsMenu();
         } else {
@@ -77,9 +78,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mSupplierName.setOnTouchListener(mTouchListener);
         mSupplierNumber.setOnTouchListener(mTouchListener);
 
-        mIncreaseButton=findViewById(R.id.increase_quantity);
-        mDecreaseButton=findViewById(R.id.decrease_quantity);
-        orderButton=findViewById(R.id.order_button);
+        mIncreaseButton = findViewById(R.id.increase_quantity);
+        mDecreaseButton = findViewById(R.id.decrease_quantity);
 
 
         if (mCurrentBookUri != null)
@@ -94,29 +94,108 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         String supplierNameString = mSupplierName.getText().toString().trim();
         String supplierContactString = mSupplierNumber.getText().toString().trim();
         if (mCurrentBookUri == null &&
-                TextUtils.isEmpty(nameString) || TextUtils.isEmpty(priceString) ||
-                TextUtils.isEmpty(quantityString) || TextUtils.isEmpty(supplierNameString) ||
+                TextUtils.isEmpty(nameString) &&
+                TextUtils.isEmpty(priceString) &&
+                TextUtils.isEmpty(quantityString) &&
+                TextUtils.isEmpty(supplierNameString) &&
                 TextUtils.isEmpty(supplierContactString)) {
             return;
         }
-        int price = 0;
-        if (!TextUtils.isEmpty(priceString)) {
-            price = Integer.parseInt(priceString);
+        if (TextUtils.isEmpty(nameString)) {
+            //set error accordingly
+            mbookName.requestFocus();
+            mbookName.setError(getString(R.string.title_empty_error));
+            Toast.makeText(this, R.string.title_empty_error, Toast.LENGTH_SHORT).show();
+
+            //indicate save wasn't successful
+            saveSuccess = false;
+            return;
+        } else {
+            //update save success flag if validation succeeds
+            saveSuccess = true;
         }
-        int quantity = 0;
-        if (!TextUtils.isEmpty(quantityString)) {
-            quantity = Integer.parseInt(quantityString);
+        //validate price field isn't empty
+        if (TextUtils.isEmpty(priceString)) {
+            //set error accordingly
+            mbookPrice.requestFocus();
+            mbookPrice.setError("price cannot be empty");
+            Toast.makeText(EditorActivity.this, R.string.price_invalid_error, Toast.LENGTH_SHORT).show();
+            //indicate save wasn't successful
+            saveSuccess = false;
+            return;
+        } else {
+            int price = Integer.parseInt(priceString.replaceAll("\\D", ""));
+            if (price < 0) {
+                saveSuccess = false;
+                mbookPrice.requestFocus();
+                mbookPrice.setError("price cannot be negative");
+                Toast.makeText(EditorActivity.this, R.string.price_invalid_error, Toast.LENGTH_SHORT).show();
+                return;
+            }
+            //update save success flag if validation succeeds
+            saveSuccess = true;
         }
-        int number = 0;
-        if (!TextUtils.isEmpty(supplierContactString)) {
-            number = Integer.parseInt(supplierContactString);
+
+        if (TextUtils.isEmpty(quantityString)) {
+            //set error accordingly
+            mQuantity.requestFocus();
+            mQuantity.setError("quantity cannot be empty");
+            Toast.makeText(EditorActivity.this, R.string.quantity_missing_error, Toast.LENGTH_SHORT).show();
+            //indicate save wasn't successful
+            saveSuccess = false;
+            return;
+        } else {
+            int quantity = Integer.parseInt(quantityString);
+            if (quantity < 0 || quantity >= 100) {
+                mQuantity.requestFocus();
+                mQuantity.setError("quantity cannot be negative or more than 100");
+                Toast.makeText(EditorActivity.this, R.string.quantity_missing_error, Toast.LENGTH_SHORT).show();
+                saveSuccess = false;
+                return;
+            }
+            //update save success flag if validation succeeds
+            saveSuccess = true;
+        }
+
+        if (TextUtils.isEmpty(supplierNameString)) {
+            //set error accordingly
+            mSupplierName.requestFocus();
+            mSupplierName.setError("Supplier Name cannot be empty");
+            Toast.makeText(EditorActivity.this, R.string.supplier_name_error, Toast.LENGTH_SHORT).show();
+            //indicate save wasn't successful
+            saveSuccess = false;
+            return;
+        } else {
+            //update save success flag if validation succeeds
+            saveSuccess = true;
+        }
+
+        if (TextUtils.isEmpty(supplierContactString)) {
+            //display error accordingly
+            mSupplierNumber.requestFocus();
+            mSupplierNumber.setError("Supplier Number cannot be empty");
+            Toast.makeText(EditorActivity.this, R.string.supplier_details_missing_error, Toast.LENGTH_SHORT).show();
+            //indicate save wasn't successful
+            saveSuccess = false;
+            return;
+        } else {
+            int snum = Integer.parseInt(supplierContactString.replaceAll("\\D", ""));
+            if (snum < 0) {
+                mSupplierNumber.requestFocus();
+                mSupplierNumber.setError("Supplier Number cannot be negative");
+                Toast.makeText(EditorActivity.this, R.string.supplier_details_missing_error, Toast.LENGTH_SHORT).show();
+                //indicate save wasn't successful
+                saveSuccess = false;
+                return;
+            }
+            saveSuccess = true;
         }
         ContentValues values = new ContentValues();
         values.put(ItemsContract.ItemsEntry.COLUMN_PRODUCT_NAME, nameString);
-        values.put(ItemsContract.ItemsEntry.COLUMN_PRICE, price);
-        values.put(ItemsContract.ItemsEntry.COLUMN_QUANTITY, quantity);
+        values.put(ItemsContract.ItemsEntry.COLUMN_PRICE, priceString);
+        values.put(ItemsContract.ItemsEntry.COLUMN_QUANTITY, quantityString);
         values.put(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_NAME, supplierNameString);
-        values.put(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER, number);
+        values.put(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER, supplierContactString);
 
         if (mCurrentBookUri == null) {
             Uri newUri = getContentResolver().insert(ItemsContract.ItemsEntry.CONTENT_URI, values);
@@ -174,18 +253,17 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
             int supplierColumnIndex = cursor.getColumnIndex(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_NAME);
             int supplierPhoneNumColumnIndex = cursor.getColumnIndex(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER);
             String name = cursor.getString(nameColumnIndex);
-            int price = cursor.getInt(priceColumnIndex);
+            double price = cursor.getInt(priceColumnIndex);
             int quantity = cursor.getInt(quantityNameColumnIndex);
             String supplierName = cursor.getString(supplierColumnIndex);
-            int supplierPhoneNum = cursor.getInt(supplierPhoneNumColumnIndex);
+            String supplierPhoneNum = cursor.getString(supplierPhoneNumColumnIndex);
             mbookName.setText(name);
-            mbookPrice.setText(Integer.toString(price));
-            mQuantity.setText(Integer.toString(quantity));
+            mbookPrice.setText(String.valueOf(price));
+            mQuantity.setText(String.valueOf((quantity)));
             mSupplierName.setText(supplierName);
             mSupplierNumber.setText(supplierName);
-            mSupplierNumber.setText(Integer.toString(supplierPhoneNum));
+            mSupplierNumber.setText(supplierPhoneNum);
         }
-
     }
 
     @Override
@@ -251,8 +329,11 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         switch (item.getItemId()) {
             case R.id.action_save:
                 saveBook();
-                finish();
-                return true;
+                if (saveSuccess) {
+                    finish();
+                    return true;
+                }
+                return false;
             case R.id.action_delete:
                 showDeleteConfirmationDialog();
                 return true;
@@ -279,7 +360,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         builder.setMessage(R.string.delete_dialog_msg);
         builder.setPositiveButton(R.string.delete, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                deletePet();
+                deleteBook();
             }
         });
         builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
@@ -293,59 +374,61 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         alertDialog.show();
     }
 
-    private void deletePet() {
+    private void deleteBook() {
         if (mCurrentBookUri != null) {
             int rowsDeleted = getContentResolver().delete(mCurrentBookUri, null, null);
             if (rowsDeleted == 0) {
-                Toast.makeText(this, getString(R.string.editor_delete_pet_failed),
+                Toast.makeText(this, getString(R.string.editor_delete_book_failed),
                         Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(this, getString(R.string.editor_delete_pet_successful),
+                Toast.makeText(this, getString(R.string.editor_delete_book_successful),
                         Toast.LENGTH_SHORT).show();
             }
         }
         finish();
     }
+
     public void increment(View view) {
-        int quantity;
-        String quantityString = mQuantity.getText().toString().trim();
-        quantity = Integer.parseInt(quantityString);
-        if (quantity == 100) {
+        if (mQuantity.getText().length() > 0) {
+            quantity = Integer.parseInt(mQuantity.getText().toString());
+        }
+        if (quantity >= 100) {
             Toast.makeText(this, getResources().getString(R.string.toast_max), Toast.LENGTH_SHORT).show();
             return;
         }
         quantity = quantity + 1;
         displayQuantity(quantity);
     }
+
     public void decrement(View view) {
-        int quantity;
-        String quantityString = mQuantity.getText().toString().trim();
-        quantity = Integer.parseInt(quantityString);
-        if (quantity == 1) {
-            Toast.makeText(this, getResources().getString(R.string.toast_min), Toast.LENGTH_SHORT).show();
-            return;
+        if (mQuantity.getText().length() > 0) {
+            quantity = Integer.parseInt(mQuantity.getText().toString());
         }
-        quantity = quantity - 1;
-        displayQuantity(quantity);
-
+        if (quantity > 0) {
+            quantity = quantity - 1;
+            displayQuantity(quantity);
+        } else {
+            Toast.makeText(this, getResources().getString(R.string.toast_min), Toast.LENGTH_SHORT).show();
+        }
     }
+
     private void displayQuantity(int number) {
-        TextView quantityTextView = (TextView) findViewById(R.id.quantity);
-        quantityTextView.setText("" + number);
+        mQuantity.setText(String.valueOf(number));
+        mQuantity.setSelection(mQuantity.getText().length());
+        mQuantity.setError(null);
     }
 
-    public void submitButton(View view){
-        int number;
+    public void submitButton(View view) {
         String numString = mSupplierNumber.getText().toString().trim();
-        number = Integer.parseInt(numString);
-        submitOrder(number);
+        if (numString.length() > 0) {
+            submitOrder(numString);
+        }
     }
 
-    private void submitOrder(int number){
-        Intent intent= new Intent(Intent.ACTION_DIAL);
-        String numberString = "tel:"+number;
+    private void submitOrder(String number) {
+        Intent intent = new Intent(Intent.ACTION_DIAL);
+        String numberString = "tel:" + number;
         intent.setData(Uri.parse(numberString));
         startActivity(intent);
     }
-
 }

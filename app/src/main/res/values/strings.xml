@@ -26,9 +26,14 @@
     <string name="delete_dialog_msg">Are you sure you want to delete ?</string>
     <string name="delete">yes</string>
     <string name="cancel">cancel</string>
-    <string name="editor_delete_pet_failed">could not delete</string>
-    <string name="editor_delete_pet_successful">Successfully deleted</string>
+    <string name="editor_delete_book_failed">could not delete</string>
+    <string name="editor_delete_book_successful">Successfully deleted</string>
     <string name="toast_max">Maximum limit is 100</string>
     <string name="toast_min">Negative values are not allowed</string>
     <string name="order_button">Order</string>
+    <string name="title_empty_error">title cannot be empty</string>
+    <string name="price_invalid_error">enter a valid price</string>
+    <string name="quantity_missing_error">enter proper quantity</string>
+    <string name="supplier_name_error">supplier name is missing</string>
+    <string name="supplier_details_missing_error">please enter a suppiler number</string>
 </resources>

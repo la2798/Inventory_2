@@ -9,13 +9,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
+
+import com.example.android.inventoryapp.Data.ItemsContract.ItemsEntry;
 
 import java.security.Provider;
 
 public class BooksProvider extends ContentProvider {
-
-
+    public static final String LOG_TAG = BooksProvider.class.getSimpleName();
     private static final int BOOKS = 100;
     private static final int BOOK_ID = 101;
     private static final UriMatcher sUriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -27,10 +29,6 @@ public class BooksProvider extends ContentProvider {
     }
 
     private BooksDbHelper mDbHelper;
-    /**
-     * Tag for the log messages
-     */
-    public static final String LOG_TAG = BooksProvider.class.getSimpleName();
 
     @Override
     public boolean onCreate() {
@@ -52,13 +50,13 @@ public class BooksProvider extends ContentProvider {
         int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
-                cursor = database.query(ItemsContract.ItemsEntry.TABLE_NAME, projection, selection, selectionArgs, null,
+                cursor = database.query(ItemsEntry.TABLE_NAME, projection, selection, selectionArgs, null,
                         null, sortOrder);
                 break;
             case BOOK_ID:
-                selection = ItemsContract.ItemsEntry._ID + "=?";
+                selection = ItemsEntry._ID + "=?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
-                cursor = database.query(ItemsContract.ItemsEntry.TABLE_NAME, projection, selection, selectionArgs,
+                cursor = database.query(ItemsEntry.TABLE_NAME, projection, selection, selectionArgs,
                         null, null, sortOrder);
                 break;
             default:
@@ -74,9 +72,9 @@ public class BooksProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match) {
             case BOOKS:
-                return ItemsContract.ItemsEntry.CONTENT_LIST_TYPE;
+                return ItemsEntry.CONTENT_LIST_TYPE;
             case BOOK_ID:
-                return ItemsContract.ItemsEntry.CONTENT_ITEM_TYPE;
+                return ItemsEntry.CONTENT_ITEM_TYPE;
             default:
                 throw new IllegalStateException("Unknown URI " + uri + " with match " + match);
         }
@@ -94,36 +92,40 @@ public class BooksProvider extends ContentProvider {
         }
     }
 
-    /**
-     * Insert a pet into the database with the given content values. Return the new content URI
-     * for that specific row in the database.
-     */
     private Uri insertBook(Uri uri, ContentValues values) {
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
-        String name = values.getAsString(ItemsContract.ItemsEntry.COLUMN_PRODUCT_NAME);
-        if (name == null) {
+        // Check that the name is not null
+        String name = values.getAsString(ItemsEntry.COLUMN_PRODUCT_NAME);
+        if (name == null || TextUtils.isEmpty(name)) {
             throw new IllegalArgumentException("Book requires a name");
         }
-        String suppliername = values.getAsString(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_NAME);
-        if (suppliername == null) {
-            throw new IllegalArgumentException("Supplier requires a name");
+
+        // Check that the price  cannot be -ve.
+        String priceInString = values.getAsString(ItemsEntry.COLUMN_PRICE);
+        double price = priceInString != null && !TextUtils.isEmpty(priceInString) ? Double.parseDouble(priceInString) : 0;
+        if (price < 0) {
+            throw new IllegalArgumentException("Price cannot be negative or zero");
         }
-        Integer price = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_PRICE);
-        if (price == null || !ItemsContract.ItemsEntry.isPositive(price)) {
-            throw new IllegalArgumentException("Pet requires valid non negative price value");
-        }
-        Integer quantity = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_QUANTITY);
-        if (quantity == null || !ItemsContract.ItemsEntry.isPositive(quantity)) {
-            throw new IllegalArgumentException("Pet requires valid non negative quantity value");
-        }
-        Integer phone = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER);
-        if (phone == null || !ItemsContract.ItemsEntry.isPositive(phone)) {
-            throw new IllegalArgumentException("Pet requires valid non negative phone num");
+        // Check that the quantity cannot be -ve.
+        String quantityInString = values.getAsString(ItemsEntry.COLUMN_QUANTITY);
+        int quantity = quantityInString != null && !TextUtils.isEmpty(quantityInString) ? Integer.parseInt(quantityInString) : 0;
+        if (quantity < 0) {
+            throw new IllegalArgumentException("Book requires a quantity");
         }
 
+        // Check that the name is not null
+        String supplierName = values.getAsString(ItemsEntry.COLUMN_SUPPLIER_NAME);
+        if (supplierName == null || TextUtils.isEmpty(supplierName)) {
+            throw new IllegalArgumentException("Book requires a supplier name");
+        }
+        // Check that the name is not null
+        String supplierPhoneNumber = values.getAsString(ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER);
+        if (supplierPhoneNumber == null) {
+            throw new IllegalArgumentException("Book requires a supplierPhoneNumber");
+        }
         // Insert the new pet with the given values
-        long id = database.insert(ItemsContract.ItemsEntry.TABLE_NAME, null, values);
+        long id = database.insert(ItemsEntry.TABLE_NAME, null, values);
         // If the ID is -1, then the insertion failed. Log an error and return null.
         if (id == -1) {
             Log.e(LOG_TAG, "Failed to insert row for " + uri);
@@ -145,13 +147,13 @@ public class BooksProvider extends ContentProvider {
         switch (match) {
             case BOOKS:
                 // Delete all rows that match the selection and selection args
-                rowsDeleted = database.delete(ItemsContract.ItemsEntry.TABLE_NAME, selection, selectionArgs);
+                rowsDeleted = database.delete(ItemsEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             case BOOK_ID:
                 // Delete a single row given by the ID in the URI
-                selection = ItemsContract.ItemsEntry._ID + "=?";
-                selectionArgs = new String[] { String.valueOf(ContentUris.parseId(uri)) };
-                rowsDeleted = database.delete(ItemsContract.ItemsEntry.TABLE_NAME, selection, selectionArgs);
+                selection = ItemsEntry._ID + "=?";
+                selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
+                rowsDeleted = database.delete(ItemsEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             default:
                 throw new IllegalArgumentException("Deletion is not supported for " + uri);
@@ -171,10 +173,7 @@ public class BooksProvider extends ContentProvider {
             case BOOKS:
                 return updatePet(uri, contentValues, selection, selectionArgs);
             case BOOK_ID:
-                // For the PET_ID code, extract out the ID from the URI,
-                // so we know which row to update. Selection will be "_id=?" and selection
-                // arguments will be a String array containing the actual ID.
-                selection = ItemsContract.ItemsEntry._ID + "=?";
+                selection = ItemsEntry._ID + "=?";
                 selectionArgs = new String[]{String.valueOf(ContentUris.parseId(uri))};
                 return updatePet(uri, contentValues, selection, selectionArgs);
             default:
@@ -184,36 +183,55 @@ public class BooksProvider extends ContentProvider {
 
     private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
 
-        String name = values.getAsString(ItemsContract.ItemsEntry.COLUMN_PRODUCT_NAME);
-        if (name == null) {
-            throw new IllegalArgumentException("Book requires a name");
+        // If the {@link ItemsEntry#COLUMN_PRODUCT_NAME} key is present,
+        // check that the name value is not null.
+        if (values.containsKey(ItemsEntry.COLUMN_PRODUCT_NAME)) {
+            String name = values.getAsString(ItemsEntry.COLUMN_PRODUCT_NAME);
+            if (name == null || TextUtils.isEmpty(name) || TextUtils.isEmpty(name)) {
+                throw new IllegalArgumentException("Book requires a name");
+            }
         }
-        String suppliername = values.getAsString(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_NAME);
-        if (suppliername == null) {
-            throw new IllegalArgumentException("Supplier requires a name");
-        }
-        Integer price = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_PRICE);
-        if (price == null || !ItemsContract.ItemsEntry.isPositive(price)) {
-            throw new IllegalArgumentException("Pet requires valid non negative price value");
-        }
-        Integer quantity = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_QUANTITY);
-        if (quantity == null || !ItemsContract.ItemsEntry.isPositive(quantity)) {
-            throw new IllegalArgumentException("Pet requires valid non negative quantity value");
-        }
-        Integer phone = values.getAsInteger(ItemsContract.ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER);
-        if (phone == null || !ItemsContract.ItemsEntry.isPositive(phone)) {
-            throw new IllegalArgumentException("Pet requires valid non negative phone num");
-        }
-        // If there are no values to update, then don't try to update the database
-        if (values.size() == 0) {
-            return 0;
 
+        // If the {@link ItemsEntry#COLUMN_PRODUCT_PRICE} key is present,
+        // check that the price value is valid.
+        if (values.containsKey(ItemsEntry.COLUMN_PRICE) && values.getAsString(ItemsEntry.COLUMN_PRICE).length() > 0) {
+            double price = values.getAsDouble(ItemsEntry.COLUMN_PRICE);
+            if (price < 0) {
+                throw new IllegalArgumentException("Price cannot be zero or negative");
+            }
+        }
+
+        // If the {@link ItemsEntry#COLUMN_QUANTITY} key is present,
+        // check that the quantity value is valid.
+        if (values.containsKey(ItemsEntry.COLUMN_QUANTITY)) {
+            // Check that the quantity cannot be -ve.
+            int quantity = Integer.parseInt(values.getAsString(ItemsEntry.COLUMN_QUANTITY));
+            if (quantity < 0) {
+                throw new IllegalArgumentException("Book requires valid quantity");
+            }
+        }
+
+        // If the {@link ItemsEntry#COLUMN_SUPPLIER_NAME} key is present,
+        // check that the supplier name value is not null.
+        if (values.containsKey(ItemsEntry.COLUMN_SUPPLIER_NAME)) {
+            String supplierName = values.getAsString(ItemsEntry.COLUMN_SUPPLIER_NAME);
+            if (supplierName == null || TextUtils.isEmpty(supplierName)) {
+                throw new IllegalArgumentException("Book requires a supplier name");
+            }
+        }
+        // If the {@link ItemsEntry#COLUMN_SUPPLIER_PHONE_NUMBER} key is present,
+        // check that the supplier phone number value is not null.
+        if (values.containsKey(ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER)) {
+            String supplierPhoneNumber = values.getAsString(ItemsEntry.COLUMN_SUPPLIER_PHONE_NUMBER);
+            if (TextUtils.isEmpty(supplierPhoneNumber)) {
+                throw new IllegalArgumentException("Book requires a supplier's valid phone Number");
+            }
         }
         // Otherwise, get writeable database to update the data
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
 
         // Perform the update on the database and get the number of rows affected
-        int rowsUpdated = database.update(ItemsContract.ItemsEntry.TABLE_NAME, values, selection, selectionArgs);
+        int rowsUpdated = database.update(ItemsEntry.TABLE_NAME, values, selection, selectionArgs);
         // If 1 or more rows were updated, then notify all listeners that the data at the
         // given URI has changed
         if (rowsUpdated != 0) {

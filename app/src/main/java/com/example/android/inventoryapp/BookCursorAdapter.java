@@ -13,7 +13,6 @@ import android.widget.Button;
 import android.widget.CursorAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.android.inventoryapp.Data.ItemsContract;
 
@@ -32,19 +31,13 @@ public class BookCursorAdapter extends CursorAdapter {
 
     @Override
     public void bindView(View view, final Context context, final Cursor cursor) {
-        // Find individual views that we want to modify in the list item layout
         TextView nameTextView = (TextView) view.findViewById(R.id.name);
         TextView priceTextView = (TextView) view.findViewById(R.id.price);
         TextView quantityTextView = view.findViewById(R.id.quantity);
         Button saleButton = view.findViewById(R.id.sale_button);
-
-
-        // Find the columns of pet attributes that we're interested in
         int nameColumnIndex = cursor.getColumnIndex(ItemsContract.ItemsEntry.COLUMN_PRODUCT_NAME);
         int priceColumnIndex = cursor.getColumnIndex(ItemsContract.ItemsEntry.COLUMN_PRICE);
         int quantityColumnIndex = cursor.getColumnIndex(ItemsContract.ItemsEntry.COLUMN_QUANTITY);
-
-        // Read the pet attributes from the Cursor for the current pet
         String bookName = cursor.getString(nameColumnIndex);
         String bookPrice = cursor.getString(priceColumnIndex);
         bookQuantity = cursor.getString(quantityColumnIndex);

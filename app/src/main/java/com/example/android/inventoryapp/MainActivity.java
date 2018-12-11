@@ -21,72 +21,60 @@ import android.widget.ListView;
 
 import com.example.android.inventoryapp.Data.ItemsContract;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor>{
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
-    private  static  final int BOOK_LOADER = 0;
+    private static final int BOOK_LOADER = 0;
     BookCursorAdapter mCursorAdapter;
 
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_main);
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, EditorActivity.class);
+                startActivity(intent);
+            }
+        });
+        ListView bookListView = (ListView) findViewById(R.id.list);
+        View emptyView = findViewById(R.id.empty_view);
+        bookListView.setEmptyView(emptyView);
 
-            // Setup FAB to open EditorActivity
-            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    Intent intent = new Intent(MainActivity.this, EditorActivity.class);
-                    startActivity(intent);
-                }
-            });
-            // Find the ListView which will be populated with the pet data
-            ListView bookListView = (ListView) findViewById(R.id.list);
+        mCursorAdapter = new BookCursorAdapter(this, null, 0);
+        bookListView.setAdapter(mCursorAdapter);
 
-            // Find and set empty view on the ListView, so that it only shows when the list has 0 items.
-            View emptyView = findViewById(R.id.empty_view);
-            bookListView.setEmptyView(emptyView);
+        bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, EditorActivity.class);
+                Uri currentBookUri = ContentUris.withAppendedId(ItemsContract.ItemsEntry.CONTENT_URI, id);
+                intent.setData(currentBookUri);
+                startActivity(intent);
+            }
+        });
 
-            mCursorAdapter = new BookCursorAdapter(this,null,0);
-            bookListView.setAdapter(mCursorAdapter);
-
-            bookListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Intent intent = new Intent(MainActivity.this,EditorActivity.class);
-                    Uri currentBookUri = ContentUris.withAppendedId(ItemsContract.ItemsEntry.CONTENT_URI,id);
-                    intent.setData(currentBookUri);
-                    startActivity(intent);
-                }
-            });
-
-            getSupportLoaderManager().initLoader(BOOK_LOADER,null,this);
+        getSupportLoaderManager().initLoader(BOOK_LOADER, null, this);
     }
-
 
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu options from the res/menu/menu_catalog.xml file.
-        // This adds menu items to the app bar.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // User clicked on a menu option in the app bar overflow menu
         switch (item.getItemId()) {
-            // Respond to a click on the "Delete all entries" menu option
             case R.id.action_delete_all_entries:
                 deleteAllPets();
                 return true;
         }
         return super.onOptionsItemSelected(item);
     }
-    /**
-     * Helper method to delete all pets in the database.
-     */
+
     private void deleteAllPets() {
         int rowsDeleted = getContentResolver().delete(ItemsContract.ItemsEntry.CONTENT_URI, null, null);
         Log.v("CatalogActivity", rowsDeleted + " rows deleted from pet database");
@@ -101,25 +89,24 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 ItemsContract.ItemsEntry.COLUMN_PRICE,
                 ItemsContract.ItemsEntry.COLUMN_QUANTITY
         };
-            return new CursorLoader(this,
-                    ItemsContract.ItemsEntry.CONTENT_URI,
-                    projection,
-                    null,
-                    null,
-                    null);
+        return new CursorLoader(this,
+                ItemsContract.ItemsEntry.CONTENT_URI,
+                projection,
+                null,
+                null,
+                null);
     }
-
 
 
     @Override
     public void onLoadFinished(@NonNull Loader<Cursor> loader, Cursor data) {
 
-            mCursorAdapter.swapCursor(data);
+        mCursorAdapter.swapCursor(data);
     }
 
     @Override
     public void onLoaderReset(@NonNull Loader<Cursor> loader) {
 
-            mCursorAdapter.swapCursor(null);
+        mCursorAdapter.swapCursor(null);
     }
 }
