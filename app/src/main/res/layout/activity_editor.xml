@@ -1,70 +1,189 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".EditorActivity">
+    tools:context=".EditorActivity"
+    android:layout_marginRight="@dimen/activity_margin"
+    android:layout_marginLeft="@dimen/activity_margin"
+    android:layout_marginBottom="@dimen/activity_margin">
 
+    <ImageView
+        style="@style/LayoutMargin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="8dp"
+        android:src="@drawable/book"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.048"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        style="@style/LayoutMargin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/cost"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.048"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.136" />
+
+    <ImageView
+        style="@style/LayoutMargin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/quantity"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.048"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.264" />
+
+
+    <ImageView
+        android:id="@+id/imageView2"
+        style="@style/LayoutMargin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:src="@drawable/phone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.048"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.403" />
+
+    <ImageView
+        android:id="@+id/imageView3"
+        style="@style/LayoutMargin"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/supplier"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.048"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.548" />
     <EditText
         android:id="@+id/bookName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/book_name" />
+        style="@style/LayoutMargin"
+        android:hint="@string/book_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.468"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0" />
 
     <EditText
+        android:textAlignment="center"
         android:id="@+id/bookPrice"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/LayoutMargin"
         android:hint="@string/book_price"
-        android:inputType="number" />
+        android:inputType="number"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.453"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.127" />
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/linearLayout"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        style="@style/LayoutMargin"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.438"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.258">
 
-        <Button
-            android:id="@+id/increase_quantity"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+        <ImageButton
+            android:background="@drawable/button_addsub"
+            android:id="@+id/decrease_quantity"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:onClick="decrement"
-            android:text="-" />
+            android:layout_marginRight="4dp"
+            android:src="@drawable/ic_exposure_neg_1_black_24dp"
+            android:stateListAnimator= "@transition/button_state_list_anim"/>
 
         <EditText
+            android:textAlignment="center"
             android:id="@+id/quantity"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:hint="@string/quantity"
             android:inputType="number" />
 
-        <Button
-            android:id="@+id/decrease_quantity"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+
+        <ImageButton
+            android:layout_marginLeft="4dp"
+            android:background="@drawable/button_addsub"
+            android:id="@+id/increase_quantity"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:onClick="increment"
-            android:text="+" />
+            android:src="@drawable/ic_exposure_plus_1_black_24dp"
+            android:stateListAnimator= "@transition/button_state_list_anim"/>
     </LinearLayout>
 
     <EditText
+        android:textAlignment="center"
         android:id="@+id/supplierName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="@string/supplier_name" />
+        style="@style/LayoutMargin"
+        android:hint="@string/supplier_name"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.547" />
 
     <EditText
+        android:textAlignment="center"
         android:id="@+id/supplierPhoneNumber"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/LayoutMargin"
         android:hint="@string/suppier_phone_number"
-        android:inputType="number" />
+        android:inputType="number"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.503"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.404" />
 
     <Button
-
+        android:background="@drawable/button_submit"
         android:id="@+id/order_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/LayoutMargin"
         android:onClick="submitButton"
-        android:text="@string/order_button" />
-</LinearLayout>
+        android:text="@string/order_button"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.777"
+        android:stateListAnimator= "@transition/button_state_list_anim"/>
+</android.support.constraint.ConstraintLayout>

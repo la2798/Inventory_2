@@ -22,6 +22,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.example.android.inventoryapp.Data.ItemsContract;
@@ -33,8 +34,8 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
     EditText mQuantity;
     EditText mSupplierName;
     EditText mSupplierNumber;
-    Button mIncreaseButton;
-    Button mDecreaseButton;
+    ImageButton mIncreaseButton;
+    ImageButton mDecreaseButton;
     Button orderButton;
     private boolean mBookHasChanged = false;
     private View.OnTouchListener mTouchListener = new View.OnTouchListener() {
@@ -57,7 +58,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mCurrentBookUri = intent.getData();
 
         if (mCurrentBookUri == null) {
-            orderButton.setEnabled(false);
+            orderButton.setVisibility(View.GONE);
             setTitle(getString(R.string.addbook));
             invalidateOptionsMenu();
         } else {
